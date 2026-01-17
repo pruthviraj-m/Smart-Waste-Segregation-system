@@ -356,6 +356,8 @@ body {
 
 /* Features */
 .eco-features {
+     background: var(--sdg);
+    color: var(--white);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 2rem;
@@ -365,7 +367,8 @@ body {
 }
 
 .feature-card {
-    background: var(--white);
+     background: var(--sdg);
+    color: var(--white);
     padding: 2rem;
     border-radius: 1rem;
     text-align: center;
@@ -379,7 +382,7 @@ body {
 
 .feature-card i {
     font-size: 2.5rem;
-    color: var(--sdg);
+    color: var(--white);
     margin-bottom: 1rem;
 }
 
@@ -493,4 +496,5 @@ body {
         right: 20px;
         left: 20px;
     }
+
 }
