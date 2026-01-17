@@ -356,7 +356,7 @@ body {
 
 /* Features */
 .eco-features {
-     background: var(--sdg);
+     
     color: var(--white);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -498,3 +498,4 @@ body {
     }
 
 }
+
