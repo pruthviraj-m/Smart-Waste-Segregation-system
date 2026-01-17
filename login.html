@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Eco-AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .login-body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #F6E6B8 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .login-logo {
+            margin-bottom: 2rem;
+        }
+        
+        .login-logo h1 {
+            color: #9C7418;
+            margin-top: 1rem;
+            font-size: 2.5rem;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+        
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-form h2 {
+            color: #9C7418;
+            margin-bottom: 1.5rem;
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #F6E6B8;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #C89A2D;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .auth-btn:hover {
+            background: #9C7418;
+        }
+        
+        .demo-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <!-- Logo -->
+        <div class="login-logo">
+            <img src="image.png" alt="Eco-AI Logo" class="logo">
+            <h1>Eco-AI</h1>
+        </div>
+        
+        <!-- Simple Form -->
+        <form class="login-form" onsubmit="loginUser(); return false;">
+            <h2>Sign In</h2>
+            
+            <input type="email" placeholder="Email" required>
+            <input type="password" placeholder="Password" required>
+            
+            <button type="submit" class="auth-btn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+            
+            <p class="demo-text">Demo: Use any email/password</p>
+        </form>
+    </div>
+
+    <script>
+        function loginUser() {
+            const email = document.querySelector('input[type="email"]').value || 'user@example.com';
+            
+            // Save login status
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('userEmail', email);
+            
+            // Redirect to home
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

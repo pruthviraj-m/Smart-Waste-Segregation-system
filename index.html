@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-AI | Smart Waste Segregation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="eco-header">
+    <nav class="eco-nav">
+        <div class="eco-logo">
+            <img src="image.png" alt="Eco-AI Logo" class="logo">
+            <span>Eco-AI</span>
+        </div>
+        <div class="nav-links">
+            <a href="#"><i class="fas fa-home"></i> Home</a>
+            <a href="#"><i class="fas fa-info-circle"></i> About</a>
+            <a href="#"><i class="fas fa-lightbulb"></i> Awareness</a>
+            <a href="#scan"><i class="fas fa-camera"></i> Scan / AI</a>
+        </div>
+        
+        <!-- CHANGE THIS PART - Replace the existing userStatus div -->
+        <div id="authSection">
+            <a href="login.html" class="login-btn" id="loginLink">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">User</span>
+                <button onclick="logout()" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+</header>
+
+    <main>
+        <section class="eco-hero">
+            <div class="hero-content">
+                <h1>Eco-AI: Smart Waste Segregation</h1>
+                <p class="tagline">Scan. Classify. Recycle Smarter.</p>
+                
+                <div class="ai-classifier">
+                    <div class="ai-header">
+                        <i class="fas fa-robot"></i>
+                        <h3>AI Waste Classifier</h3>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="wasteInput" placeholder="Describe your waste (e.g., plastic bottle, banana peel)">
+                        <button id="analyzeBtn" class="analyze-btn">
+                            <i class="fas fa-search"></i> Analyze
+                        </button>
+                    </div>
+                    
+                    <div class="ai-status" id="aiStatus">
+                        <i class="fas fa-clock"></i> Waiting for input...
+                    </div>
+                    
+                    <div class="result-container" id="resultBox"></div>
+                    
+                    <div class="bin-grid">
+                        <div class="bin-card" data-id="paper">
+                            <img src="image1.jpg" alt="Paper Bin">
+                            <span>Paper</span>
+                        </div>
+                        <div class="bin-card" data-id="glass">
+                            <img src="image2.avif" alt="Glass Bin">
+                            <span>Glass</span>
+                        </div>
+                        <div class="bin-card" data-id="organic">
+                            <img src="image3.jpg" alt="Organic Bin">
+                            <span>Organic</span>
+                        </div>
+                        <div class="bin-card" data-id="plastic">
+                            <img src="image4.webp" alt="Plastic Bin">
+                            <span>Plastic</span>
+                        </div>
+                        <div class="bin-card" data-id="ewaste">
+                            <img src="image5.jpg" alt="E-Waste Bin">
+                            <span>E-Waste</span>
+                        </div>
+                        <div class="bin-card" data-id="metal">
+                            <img src="image6.jpg" alt="Metal Bin">
+                            <span>Metal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+
+        <!-- Eco-Chat Bot -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <i class="fas fa-comment-dots"></i>
+                <h3>Eco Assistant</h3>
+                <button class="close-chat"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <p>Hello! I'm your Eco Assistant. Ask me about waste segregation, recycling tips, or how to dispose of specific items!</p>
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask about waste management...">
+                <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <button class="chat-toggle">
+            <i class="fas fa-comment"></i>
+        </button>
+
+        <section class="eco-features">
+            <div class="feature-card">
+                <i class="fas fa-brain"></i>
+                <h3>How it Works</h3>
+                <p>User → AI → Waste rules → Bin → Eco Tip</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-seedling"></i>
+                <h3>SDG-12 Aligned</h3>
+                <p>Responsible Consumption & Production</p>
+            </div>
+            <div class="feature-card highlight">
+                <i class="fas fa-recycle"></i>
+                <h3>Start Segregating</h3>
+                <p>Small actions create big impact</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
