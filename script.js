@@ -1,50 +1,6 @@
-// ================= USER LOGIN SYSTEM =================
-// Check login status on page load
-function checkLoginStatus() {
-    const loginLink = document.getElementById('loginLink');
-    const userInfo = document.getElementById('userInfo');
-    const userName = document.getElementById('userName');
-    
-    if (!loginLink || !userInfo || !userName) return;
-    
-    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-    const userEmail = sessionStorage.getItem('userEmail');
-    
-    if (isLoggedIn && userEmail) {
-        // Show user info
-        loginLink.style.display = 'none';
-        userInfo.style.display = 'flex';
-        userName.textContent = userEmail.split('@')[0] || 'User';
-    } else {
-        // Show login button
-        loginLink.style.display = 'flex';
-        userInfo.style.display = 'none';
-    }
-}
+// ================== SIMPLE RAG SYSTEM ==================
 
-// Logout function
-function logout() {
-    sessionStorage.removeItem('isLoggedIn');
-    sessionStorage.removeItem('userEmail');
-    checkLoginStatus();
-    
-    // Optional: Show logout message in chat
-    setTimeout(() => {
-        if (typeof addMessage === 'function') {
-            addMessage("You've been logged out. Thanks for using Eco-AI!", false);
-        }
-    }, 300);
-}
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', checkLoginStatus);
-
-// Updated Waste Classification Data with Cloth and Better Categories
-// ================== ENHANCED RAG AI SYSTEM ==================
-
-// ================== SIMPLE WORKING RAG SYSTEM ==================
-
-// Enhanced knowledge base with more detailed information
+// Enhanced waste knowledge base
 const wasteKnowledge = [
     {
         id: "paper",
@@ -135,105 +91,61 @@ class SimpleRAGClassifier {
         console.log("✅ RAG System Initialized");
     }
     
-    // Simple similarity calculation
     calculateMatch(userInput, item) {
         const input = userInput.toLowerCase();
         let score = 0;
-        let matchedKeywords = [];
         
         // Direct keyword matching
         item.keywords.forEach(keyword => {
             if (input.includes(keyword.toLowerCase())) {
                 score += 3;
-                matchedKeywords.push(keyword);
             }
         });
         
-        // Check in description and rules
-        const allText = item.type.toLowerCase() + " " + 
-                       item.bin.toLowerCase() + " " + 
-                       item.rules.join(" ").toLowerCase() + " " +
-                       item.examples.toLowerCase();
-        
-        if (allText.includes(input.split(" ")[0])) {
+        // Check type and examples
+        if (input.includes(item.type.toLowerCase().split(" ")[0])) {
             score += 2;
         }
         
-        // Bonus for exact matches
-        if (input === item.type.toLowerCase() || input === item.id) {
-            score += 5;
-        }
-        
-        return { score, matchedKeywords };
+        return score;
     }
     
-    // Classify with RAG-style response
     classify(userInput) {
         console.log("🔍 RAG analyzing:", userInput);
         
         if (!userInput || userInput.length < 2) {
-            return this.createResponse(null, "Please enter a waste item to analyze", 0);
+            return { success: false, error: "Please enter a waste item" };
         }
         
         let bestMatch = null;
         let bestScore = 0;
-        let allMatches = [];
         
-        // Find all matches
         wasteKnowledge.forEach(item => {
-            const match = this.calculateMatch(userInput, item);
+            const score = this.calculateMatch(userInput, item);
             
-            if (match.score > 0) {
-                allMatches.push({
-                    item: item,
-                    score: match.score,
-                    keywords: match.matchedKeywords
-                });
-                
-                if (match.score > bestScore) {
-                    bestScore = match.score;
-                    bestMatch = item;
-                }
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = item;
             }
         });
         
-        // Sort matches by score
-        allMatches.sort((a, b) => b.score - a.score);
-        
-        // Special case handling
+        // Special cases
         if (userInput.includes("plastic") && userInput.includes("bag")) {
             bestMatch = wasteKnowledge.find(item => item.id === "plastic_bag");
             bestScore = 10;
         }
         
-        if (userInput.includes("phone") || userInput.includes("laptop")) {
-            bestMatch = wasteKnowledge.find(item => item.id === "ewaste");
-            bestScore = 8;
-        }
-        
         if (bestMatch) {
-            return this.createResponse(bestMatch, null, bestScore / 15, allMatches.slice(0, 3));
-        }
-        
-        return this.createResponse(null, "I'm not sure about this item. Try being more specific.", 0);
-    }
-    
-    createResponse(item, error, confidence, alternatives = []) {
-        if (error) {
+            const confidence = Math.min(bestScore / 10, 0.95);
             return {
-                success: false,
-                error: error,
-                confidence: 0
+                success: true,
+                item: bestMatch,
+                confidence: confidence,
+                explanation: this.generateExplanation(bestMatch, confidence)
             };
         }
         
-        return {
-            success: true,
-            item: item,
-            confidence: Math.min(confidence, 0.95).toFixed(2),
-            alternatives: alternatives.map(a => a.item),
-            explanation: this.generateExplanation(item, confidence)
-        };
+        return { success: false, error: "I'm not sure about this item" };
     }
     
     generateExplanation(item, confidence) {
@@ -247,28 +159,46 @@ class SimpleRAGClassifier {
                `**📦 Examples:** ${item.examples}`;
     }
     
-    // Chat response with RAG
+    // CHAT BOT INTEGRATION - This powers the chat responses
     chatResponse(question) {
+        console.log("💬 Chat bot received:", question);
         const lowerQuestion = question.toLowerCase();
         
         // Check if it's asking about disposal
-        const disposalKeywords = ["where", "how to", "dispose", "throw", "recycle", "bin"];
-        const isDisposalQuestion = disposalKeywords.some(keyword => lowerQuestion.includes(keyword));
+        const disposalPatterns = [
+            "where should i",
+            "how to dispose",
+            "what bin for",
+            "where to throw",
+            "how do i throw",
+            "where do i put",
+            "recycle"
+        ];
+        
+        const isDisposalQuestion = disposalPatterns.some(pattern => 
+            lowerQuestion.includes(pattern)
+        );
         
         if (isDisposalQuestion) {
-            // Extract the item from question
+            console.log("📦 Detected disposal question");
+            // Extract the waste item
             let wasteItem = lowerQuestion;
-            disposalKeywords.forEach(keyword => {
-                if (wasteItem.includes(keyword)) {
-                    wasteItem = wasteItem.split(keyword)[1] || wasteItem;
-                }
+            
+            // Remove question words
+            const questionWords = ["where", "how", "what", "should", "to", "do", "i", "throw", "dispose", "put", "recycle", "bin", "for"];
+            questionWords.forEach(word => {
+                wasteItem = wasteItem.replace(word, "").trim();
             });
             
+            // Remove punctuation
             wasteItem = wasteItem.replace(/[?.,]/g, '').trim();
+            
+            console.log("🔍 Extracted waste item:", wasteItem);
             
             if (wasteItem.length > 2) {
                 const result = this.classify(wasteItem);
                 if (result.success) {
+                    console.log("✅ Found answer:", result.item.type);
                     return result.explanation;
                 }
             }
@@ -283,12 +213,12 @@ class SimpleRAGClassifier {
             return "Recycling saves energy, reduces landfill waste, conserves natural resources, and helps fight climate change! 🌍";
         }
         
-        if (lowerQuestion.includes("plastic bag")) {
-            return "⚠️ Plastic bags should NOT go in curbside recycling! Take them to grocery store drop-off bins. They clog machinery.";
+        if (lowerQuestion.includes("hi") || lowerQuestion.includes("hello") || lowerQuestion.includes("hey")) {
+            return "Hello! I'm your Eco Assistant with RAG AI. Ask me where to dispose any item! 🧠";
         }
         
-        if (lowerQuestion.includes("hi") || lowerQuestion.includes("hello")) {
-            return "Hello! I'm your Eco Assistant with enhanced RAG AI. Ask me where to dispose any item! 🧠";
+        if (lowerQuestion.includes("thanks") || lowerQuestion.includes("thank you")) {
+            return "You're welcome! Happy to help with waste management! 🌱";
         }
         
         return "I'm here to help with waste disposal questions. Try asking: 'Where should I throw plastic bottles?' or 'How to recycle old electronics?'";
@@ -298,7 +228,35 @@ class SimpleRAGClassifier {
 // Initialize the RAG system
 const rag = new SimpleRAGClassifier();
 
-// ================== UPDATE YOUR EXISTING ANALYZE FUNCTION ==================
+// ================== LOGIN SYSTEM (KEEP THIS) ==================
+function checkLoginStatus() {
+    const loginLink = document.getElementById('loginLink');
+    const userInfo = document.getElementById('userInfo');
+    const userName = document.getElementById('userName');
+    
+    if (!loginLink || !userInfo || !userName) return;
+    
+    const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+    const userEmail = sessionStorage.getItem('userEmail');
+    
+    if (isLoggedIn && userEmail) {
+        loginLink.style.display = 'none';
+        userInfo.style.display = 'flex';
+        userName.textContent = userEmail.split('@')[0] || 'User';
+    } else {
+        loginLink.style.display = 'flex';
+        userInfo.style.display = 'none';
+    }
+}
+
+function logout() {
+    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('userEmail');
+    checkLoginStatus();
+}
+document.addEventListener('DOMContentLoaded', checkLoginStatus);
+
+// ================== WASTE ANALYSIS (RAG VERSION) ==================
 document.getElementById('analyzeBtn').addEventListener('click', function() {
     const input = document.getElementById('wasteInput').value.trim();
     const status = document.getElementById('aiStatus');
@@ -311,7 +269,6 @@ document.getElementById('analyzeBtn').addEventListener('click', function() {
     
     status.innerHTML = '<i class="fas fa-brain"></i> RAG AI analyzing...';
     
-    // Simple delay to show processing
     setTimeout(() => {
         const result = rag.classify(input);
         
@@ -319,296 +276,150 @@ document.getElementById('analyzeBtn').addEventListener('click', function() {
         document.querySelectorAll('.bin-card').forEach(card => {
             card.style.borderColor = 'var(--sdg-soft)';
             card.style.boxShadow = 'none';
-            card.style.transform = 'none';
         });
         
         if (!result.success) {
             resultBox.innerHTML = `
-                <div class="simple-rag-result">
-                    <h3><i class="fas fa-question-circle"></i> Need More Info</h3>
+                <div style="background: #FFF3E0; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #FF9800;">
+                    <h4 style="color: #EF6C00; margin-bottom: 0.5rem;">
+                        <i class="fas fa-question-circle"></i> Need More Info
+                    </h4>
                     <p>${result.error}</p>
-                    <div class="suggestions">
-                        <p><strong>Try examples:</strong></p>
-                        <ul>
-                            <li>Plastic water bottle</li>
-                            <li>Food waste / banana peel</li>
-                            <li>Old phone or battery</li>
-                            <li>Shopping bags</li>
-                        </ul>
-                    </div>
+                    <p><strong>Try:</strong> plastic bottle, food waste, old phone, shopping bags</p>
                 </div>
             `;
             status.innerHTML = '<i class="fas fa-info-circle"></i> Try specific description';
             return;
         }
         
-        // Highlight the matching bin
+        // Highlight matching bin
         const matchedBin = document.querySelector(`[data-id="${result.item.id}"]`);
         if (matchedBin) {
             matchedBin.style.borderColor = '#4CAF50';
-            matchedBin.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.3)';
-            matchedBin.style.transform = 'scale(1.05)';
+            matchedBin.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.4)';
         }
         
-        // Display RAG result
+        // Display result
         const confidencePercent = (result.confidence * 100).toFixed(0);
-        const confidenceColor = result.confidence > 0.7 ? '#4CAF50' : 
-                               result.confidence > 0.4 ? '#FF9800' : '#F44336';
-        
         resultBox.innerHTML = `
-            <div class="simple-rag-result">
-                <div class="rag-header">
-                    <h3><i class="fas fa-robot"></i> RAG AI Result</h3>
-                    <span class="confidence" style="background: ${confidenceColor}">
+            <div style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="color: #2E7D32; margin: 0;">
+                        <i class="fas fa-robot"></i> ${result.item.type}
+                    </h3>
+                    <span style="background: #4CAF50; color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.85rem;">
                         ${confidencePercent}% confident
                     </span>
                 </div>
                 
-                <div class="rag-content">
-                    <h4>${result.item.type}</h4>
-                    
-                    <div class="rag-section">
-                        <h5><i class="fas fa-trash-alt"></i> Disposal</h5>
-                        <p class="bin-highlight">${result.item.bin}</p>
-                    </div>
-                    
-                    <div class="rag-section">
-                        <h5><i class="fas fa-clipboard-list"></i> Rules</h5>
-                        <ul>
-                            ${result.item.rules.map(rule => `<li>${rule}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div class="rag-section">
-                        <h5><i class="fas fa-leaf"></i> Environmental Impact</h5>
-                        <p>${result.item.why}</p>
-                    </div>
-                    
-                    <div class="rag-section">
-                        <h5><i class="fas fa-box"></i> Common Examples</h5>
-                        <p>${result.item.examples}</p>
-                    </div>
-                    
-                    ${result.item.id === 'plastic_bag' ? `
-                        <div class="warning-rag">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Important:</strong> Not accepted in curbside recycling bins
-                        </div>
-                    ` : ''}
-                    
-                    ${result.alternatives.length > 0 ? `
-                        <div class="alternatives">
-                            <h5><i class="fas fa-exchange-alt"></i> Also could be:</h5>
-                            <p>${result.alternatives.map(a => a.type).join(', ')}</p>
-                        </div>
-                    ` : ''}
+                <p><strong>🗑️ Bin:</strong> ${result.item.bin}</p>
+                
+                <div style="background: #F5F5F5; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                    <h5 style="color: #333; margin-bottom: 0.5rem;">
+                        <i class="fas fa-clipboard-list"></i> Rules:
+                    </h5>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        ${result.item.rules.map(rule => `<li>${rule}</li>`).join('')}
+                    </ul>
                 </div>
                 
-                <div class="rag-footer">
-                    <small><i class="fas fa-microchip"></i> Powered by RAG AI • Retrieval-Augmented Generation</small>
+                <p><strong>🌍 Environmental Impact:</strong> ${result.item.why}</p>
+                
+                ${result.item.id === 'plastic_bag' ? `
+                    <div style="background: #FFEBEE; color: #C62828; padding: 0.75rem; border-radius: 0.5rem; margin: 1rem 0; border-left: 3px solid #F44336;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> Not accepted in curbside recycling!
+                    </div>
+                ` : ''}
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #ddd; color: #666; font-size: 0.85rem;">
+                    <i class="fas fa-microchip"></i> Powered by RAG AI
                 </div>
             </div>
         `;
         
-        status.innerHTML = `<i class="fas fa-check-circle"></i> RAG analysis complete`;
+        status.innerHTML = '<i class="fas fa-check-circle"></i> RAG analysis complete';
         
     }, 800);
 });
 
-// ================== UPDATE CHAT BOT ==================
-// Replace your existing sendMessage function
-const originalSendMessage = window.sendMessage;
-window.sendMessage = function() {
-    const message = document.getElementById('chatInput').value.trim();
+// Enter key support
+document.getElementById('wasteInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('analyzeBtn').click();
+});
+
+// ================== CHAT BOT WITH RAG INTEGRATION ==================
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatContainer = document.querySelector('.chat-container');
+const chatToggle = document.querySelector('.chat-toggle');
+const closeChat = document.querySelector('.close-chat');
+
+// Function to add messages to chat
+function addMessage(text, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+    messageDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Send message handler - THIS USES RAG
+function sendMessage() {
+    const message = chatInput.value.trim();
     if (!message) return;
     
-    // Add user message
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user';
-    messageDiv.innerHTML = `<p>${message}</p>`;
-    document.getElementById('chatMessages').appendChild(messageDiv);
-    
-    // Clear input
-    document.getElementById('chatInput').value = '';
-    
-    // Scroll to bottom
-    const chatMessages = document.getElementById('chatMessages');
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    addMessage(message, true);
+    chatInput.value = '';
     
     // Get RAG response after delay
     setTimeout(() => {
         const response = rag.chatResponse(message);
-        
-        const botMessage = document.createElement('div');
-        botMessage.className = 'message bot rag-enhanced';
-        botMessage.innerHTML = `<p>${response.replace(/\n/g, '<br>')}</p>`;
-        document.getElementById('chatMessages').appendChild(botMessage);
-        
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        addMessage(response, false);
     }, 600);
-};
+}
 
-// Update chat toggle to use new function
-document.getElementById('sendBtn').onclick = window.sendMessage;
-document.getElementById('chatInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') window.sendMessage();
+// Event listeners for chat
+sendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
 });
 
-// ================== ADD SIMPLE RAG CSS ==================
-const style = document.createElement('style');
-style.textContent = `
-    .simple-rag-result {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        border-left: 4px solid #4CAF50;
-    }
-    
-    .rag-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f0f0f0;
-    }
-    
-    .rag-header h3 {
-        color: #2E7D32;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .confidence {
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        color: white;
-        font-size: 0.85rem;
-        font-weight: bold;
-    }
-    
-    .rag-content h4 {
-        color: #333;
-        margin-bottom: 1.5rem;
-        font-size: 1.4rem;
-    }
-    
-    .rag-section {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: #f9f9f9;
-        border-radius: 0.5rem;
-    }
-    
-    .rag-section h5 {
-        color: #2E7D32;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .bin-highlight {
-        background: #E8F5E9;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        font-weight: bold;
-        color: #2E7D32;
-        border-left: 3px solid #4CAF50;
-    }
-    
-    .rag-section ul {
-        padding-left: 1.5rem;
-        margin: 0;
-    }
-    
-    .rag-section li {
-        margin-bottom: 0.5rem;
-    }
-    
-    .warning-rag {
-        background: #FFF3E0;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        color: #EF6C00;
-        margin: 1rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border-left: 3px solid #FF9800;
-    }
-    
-    .alternatives {
-        background: #E3F2FD;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-    }
-    
-    .alternatives h5 {
-        color: #1565C0;
-        margin-bottom: 0.5rem;
-    }
-    
-    .rag-footer {
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px dashed #ddd;
-        color: #666;
-        font-size: 0.85rem;
-        text-align: center;
-    }
-    
-    .suggestions {
-        background: #F5F5F5;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-top: 1rem;
-    }
-    
-    .suggestions ul {
-        padding-left: 1.5rem;
-        margin: 0.5rem 0;
-    }
-    
-    .suggestions li {
-        margin-bottom: 0.25rem;
-    }
-    
-    .message.bot.rag-enhanced {
-        background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
-        border-left: 4px solid #4CAF50;
-    }
-    
-    #aiStatus i.fa-brain {
-        color: #4CAF50;
-    }
-`;
-document.head.appendChild(style);
+// Toggle chat visibility
+chatToggle.addEventListener('click', () => {
+    chatContainer.classList.add('active');
+    chatToggle.style.display = 'none';
+    chatInput.focus();
+});
 
-// Test the RAG system
-console.log("🚀 Simple RAG System Ready!");
-console.log("Test commands:");
-console.log("- rag.classify('plastic bottle')");
-console.log("- rag.chatResponse('where to throw plastic bags?')");
+closeChat.addEventListener('click', () => {
+    chatContainer.classList.remove('active');
+    chatToggle.style.display = 'flex';
+});
 
-// Update initial chat message
+// Initialize chat with welcome
 setTimeout(() => {
-    if (document.getElementById('chatMessages')) {
-        const chatDiv = document.getElementById('chatMessages');
-        const welcomeMsg = document.createElement('div');
-        welcomeMsg.className = 'message bot rag-enhanced';
-        welcomeMsg.innerHTML = '<p>Hello! I\'m your <strong>Enhanced Eco Assistant with RAG AI</strong>! 🧠<br>Ask me: "Where should I throw plastic bags?" or "How to recycle old phones?"</p>';
-        chatDiv.appendChild(welcomeMsg);
-    }
+    addMessage("Hello! I'm your **Enhanced Eco Assistant with RAG AI**! 🧠<br>Ask me: 'Where should I throw plastic bags?' or 'How to recycle old phones?'", false);
 }, 1000);
+
+// ================== QUICK TIPS ==================
+const quickTips = document.querySelectorAll('.bin-card');
+quickTips.forEach(bin => {
+    bin.addEventListener('click', () => {
+        const wasteType = bin.getAttribute('data-id');
+        const category = wasteKnowledge.find(item => item.id === wasteType);
+        if (category) {
+            document.getElementById('wasteInput').value = category.keywords[0];
+            document.getElementById('analyzeBtn').click();
+        }
+    });
+});
 
 // Make rag available globally for testing
 window.rag = rag;
 
-console.log("🚀 RAG AI System Loaded!");
-
+console.log("🚀 RAG System Ready! Test with:");
+console.log("1. rag.classify('plastic bottle')");
+console.log("2. rag.chatResponse('where to throw old phones?')");
+console.log("3. Type in chat: 'how to dispose food waste?'");
