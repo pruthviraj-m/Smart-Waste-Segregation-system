@@ -42,544 +42,573 @@ document.addEventListener('DOMContentLoaded', checkLoginStatus);
 // Updated Waste Classification Data with Cloth and Better Categories
 // ================== ENHANCED RAG AI SYSTEM ==================
 
-// Enhanced waste knowledge base with more context
-const wasteKnowledgeBase = [
-    {id: "paper", type: "Paper", bin: "Blue Bin", 
-     description: "Newspapers, magazines, cardboard, office paper. Must be clean and dry.",
-     keywords: ["paper","book","cardboard","newspaper","magazine","notebook","envelope","box"],
-     tips: ["Remove plastic wrapping", "Remove staples and clips", "Flatten cardboard boxes"]},
-    
-    {id: "glass", type: "Glass", bin: "Green Bin", 
-     description: "Glass bottles and jars. No window glass, mirrors, or ceramics.",
-     keywords: ["glass","jar","bottle","glass bottle","wine bottle","beer bottle","container"],
-     tips: ["Rinse clean", "Remove lids (different material)", "No broken glass in recycling"]},
-    
-    {id: "organic", type: "Organic Waste", bin: "Compost Bin", 
-     description: "Food scraps, yard waste, compostable materials.",
-     keywords: ["food","fruit","vegetable","peel","compost","leftover","egg shell","coffee","tea"],
-     tips: ["No meat or dairy in home compost", "Use compostable bags", "Keep it covered"]},
-    
-    {id: "plastic", type: "Rigid Plastic", bin: "Yellow Bin", 
-     description: "Plastic bottles, containers, tubs. Look for recycling symbols 1, 2, 5.",
-     keywords: ["plastic bottle","container","tupperware","yogurt cup","milk jug","detergent bottle"],
-     tips: ["Rinse and crush", "Check recycling number", "Remove pumps from bottles"]},
-    
-    {id: "plastic_bag", type: "Soft Plastic", bin: "Store Drop-off", 
-     description: "Plastic bags, wrappers, packaging films. NOT in curbside recycling.",
-     keywords: ["plastic bag","shopping bag","carry bag","wrapper","packaging","bubble wrap","ziploc"],
-     tips: ["Take to grocery store drop-off", "Reuse when possible", "Avoid single-use bags"]},
-    
-    {id: "ewaste", type: "Electronic Waste", bin: "E-Waste Facility", 
-     description: "Electronics, batteries, cables. Contains hazardous materials.",
-     keywords: ["phone","battery","charger","laptop","electronic","tv","remote","wire","cable"],
-     tips: ["Find certified e-waste recycler", "Remove batteries if possible", "Wipe data from devices"]},
-    
-    {id: "metal", type: "Metal", bin: "Metal Bin", 
-     description: "Aluminum cans, tin cans, metal containers, clean foil.",
-     keywords: ["can","soda can","food can","aluminum","tin","metal","foil","metal lid"],
-     tips: ["Rinse cans", "Remove paper labels", "Ball aluminum foil together"]},
-    
-    {id: "cloth", type: "Textiles", bin: "Donation/Textile Bin", 
-     description: "Clothing, fabric, linens. Clean items can be donated.",
-     keywords: ["cloth","clothes","shirt","jeans","towel","fabric","garment","linen"],
-     tips: ["Clean clothes: donate", "Worn-out: textile recycling", "No wet or moldy items"]},
-    
-    {id: "hazardous", type: "Hazardous Waste", bin: "Special Facility", 
-     description: "Batteries, chemicals, light bulbs, medicines, paint.",
-     keywords: ["battery","paint","chemical","solvent","light bulb","cfl","medicine","thermometer"],
-     tips: ["⚠️ Special disposal required", "Never in regular trash", "Check local drop-off events"]}
+// ================== SIMPLE WORKING RAG SYSTEM ==================
+
+// Enhanced knowledge base with more detailed information
+const wasteKnowledge = [
+    {
+        id: "paper",
+        type: "Paper & Cardboard",
+        bin: "Blue Recycling Bin",
+        keywords: ["paper", "cardboard", "newspaper", "magazine", "book", "envelope", "box"],
+        rules: ["Must be clean and dry", "No grease or food stains", "Remove plastic wrapping"],
+        why: "Paper can be recycled 5-7 times into new paper products",
+        examples: "Newspapers, magazines, office paper, cardboard boxes"
+    },
+    {
+        id: "plastic",
+        type: "Plastic Containers",
+        bin: "Yellow Recycling Bin",
+        keywords: ["plastic bottle", "water bottle", "soda bottle", "container", "jug", "tub"],
+        rules: ["Rinse clean", "Check recycling number (1, 2, 5 best)", "Remove caps and pumps"],
+        why: "Plastic takes 450+ years to decompose in landfill",
+        examples: "Water bottles, milk jugs, detergent bottles, yogurt containers"
+    },
+    {
+        id: "plastic_bag",
+        type: "Soft Plastic & Bags",
+        bin: "Store Drop-off Bin",
+        keywords: ["plastic bag", "shopping bag", "carry bag", "wrapper", "packaging", "bubble wrap"],
+        rules: ["NOT in curbside recycling", "Take to grocery store drop-off", "Reuse when possible"],
+        why: "Bags clog recycling machinery and cause shutdowns",
+        examples: "Grocery bags, bread bags, dry cleaning bags, air pillows"
+    },
+    {
+        id: "glass",
+        type: "Glass",
+        bin: "Green Glass Bin",
+        keywords: ["glass", "bottle", "jar", "glass bottle", "wine bottle"],
+        rules: ["Rinse clean", "Remove metal lids", "No broken glass in recycling"],
+        why: "Glass can be recycled endlessly without quality loss",
+        examples: "Food jars, beverage bottles, condiment containers"
+    },
+    {
+        id: "organic",
+        type: "Organic Waste",
+        bin: "Compost Bin / Green Bin",
+        keywords: ["food", "fruit", "vegetable", "peel", "compost", "leftover", "coffee"],
+        rules: ["No meat/dairy in home compost", "Use compostable bags", "Keep bin covered"],
+        why: "Food waste produces methane in landfills, a potent greenhouse gas",
+        examples: "Fruit peels, vegetable scraps, coffee grounds, eggshells"
+    },
+    {
+        id: "ewaste",
+        type: "Electronic Waste",
+        bin: "E-Waste Collection Center",
+        keywords: ["phone", "battery", "charger", "laptop", "electronic", "tv", "cable"],
+        rules: ["Never in regular trash", "Find certified recycler", "Remove batteries if possible"],
+        why: "Electronics contain toxic materials and valuable precious metals",
+        examples: "Smartphones, laptops, batteries, cables, small appliances"
+    },
+    {
+        id: "metal",
+        type: "Metal",
+        bin: "Metal Recycling Bin",
+        keywords: ["can", "soda can", "food can", "aluminum", "tin", "metal"],
+        rules: ["Rinse cans", "Remove paper labels", "Ball aluminum foil together"],
+        why: "Recycling aluminum saves 95% energy vs making new",
+        examples: "Soda cans, food cans, aluminum foil, metal lids"
+    },
+    {
+        id: "cloth",
+        type: "Textiles",
+        bin: "Donation Bin / Textile Recycling",
+        keywords: ["clothes", "shirt", "jeans", "towel", "fabric", "garment", "linen"],
+        rules: ["Clean & dry: donate", "Worn-out: textile recycling", "No wet/moldy items"],
+        why: "Textiles in landfill take 200+ years to decompose",
+        examples: "Clothing, bedsheets, towels, curtains, shoes"
+    },
+    {
+        id: "hazardous",
+        type: "Hazardous Waste",
+        bin: "Special Collection Facility",
+        keywords: ["battery", "paint", "chemical", "light bulb", "medicine", "aerosol"],
+        rules: ["⚠️ Special handling required", "Never pour down drain", "Check local drop-off"],
+        why: "These materials can contaminate soil and water",
+        examples: "Batteries, paints, cleaners, light bulbs, medications"
+    }
 ];
 
-// Create embeddings (simplified for browser)
-class SimpleRAGSystem {
+// Simple RAG Classifier
+class SimpleRAGClassifier {
     constructor() {
-        this.knowledgeBase = wasteKnowledgeBase;
-        this.useML = false;
-        this.init();
+        console.log("✅ RAG System Initialized");
     }
     
-    async init() {
-        // Try to load ML for better matching (optional)
-        if (typeof tf !== 'undefined') {
-            try {
-                this.useML = true;
-                console.log("ML features enabled");
-            } catch (e) {
-                console.log("Using basic matching");
-            }
-        }
-    }
-    
-    // Semantic similarity using simple techniques
-    calculateSimilarity(text1, text2) {
-        const words1 = text1.toLowerCase().split(/\W+/).filter(w => w.length > 2);
-        const words2 = text2.toLowerCase().split(/\W+/).filter(w => w.length > 2);
+    // Simple similarity calculation
+    calculateMatch(userInput, item) {
+        const input = userInput.toLowerCase();
+        let score = 0;
+        let matchedKeywords = [];
         
-        // Jaccard similarity
-        const set1 = new Set(words1);
-        const set2 = new Set(words2);
-        const intersection = new Set([...set1].filter(x => set2.has(x)));
-        const union = new Set([...set1, ...set2]);
-        
-        return intersection.size / union.size;
-    }
-    
-    // Enhanced classification with RAG principles
-    async classifyWithRAG(userInput) {
-        console.log("🧠 RAG AI analyzing:", userInput);
-        
-        // Step 1: Direct keyword matching (fast)
-        const keywordResults = this.keywordMatch(userInput);
-        
-        // Step 2: Semantic matching (contextual)
-        const semanticResults = this.semanticMatch(userInput);
-        
-        // Step 3: Combine results
-        const combinedResults = this.combineResults(keywordResults, semanticResults, userInput);
-        
-        // Step 4: Generate explanation
-        const explanation = this.generateExplanation(combinedResults, userInput);
-        
-        return {
-            classification: combinedResults.bestMatch,
-            confidence: combinedResults.confidence,
-            explanation: explanation,
-            alternatives: combinedResults.alternatives,
-            source: "RAG AI System"
-        };
-    }
-    
-    keywordMatch(text) {
-        const tokens = text.toLowerCase().split(/\W+/).filter(t => t.length > 2);
-        let results = [];
-        
-        this.knowledgeBase.forEach(item => {
-            let score = 0;
-            let matchedKeywords = [];
-            
-            tokens.forEach(token => {
-                item.keywords.forEach(keyword => {
-                    if (keyword.includes(token) || token.includes(keyword)) {
-                        score += 1;
-                        if (!matchedKeywords.includes(keyword)) {
-                            matchedKeywords.push(keyword);
-                        }
-                    }
-                });
-            });
-            
-            if (score > 0) {
-                results.push({
-                    item: item,
-                    score: score,
-                    matchedKeywords: matchedKeywords,
-                    type: 'keyword'
-                });
+        // Direct keyword matching
+        item.keywords.forEach(keyword => {
+            if (input.includes(keyword.toLowerCase())) {
+                score += 3;
+                matchedKeywords.push(keyword);
             }
         });
         
-        return results.sort((a, b) => b.score - a.score);
+        // Check in description and rules
+        const allText = item.type.toLowerCase() + " " + 
+                       item.bin.toLowerCase() + " " + 
+                       item.rules.join(" ").toLowerCase() + " " +
+                       item.examples.toLowerCase();
+        
+        if (allText.includes(input.split(" ")[0])) {
+            score += 2;
+        }
+        
+        // Bonus for exact matches
+        if (input === item.type.toLowerCase() || input === item.id) {
+            score += 5;
+        }
+        
+        return { score, matchedKeywords };
     }
     
-    semanticMatch(text) {
-        const results = [];
+    // Classify with RAG-style response
+    classify(userInput) {
+        console.log("🔍 RAG analyzing:", userInput);
         
-        this.knowledgeBase.forEach(item => {
-            // Check description similarity
-            const descSimilarity = this.calculateSimilarity(text, item.description);
+        if (!userInput || userInput.length < 2) {
+            return this.createResponse(null, "Please enter a waste item to analyze", 0);
+        }
+        
+        let bestMatch = null;
+        let bestScore = 0;
+        let allMatches = [];
+        
+        // Find all matches
+        wasteKnowledge.forEach(item => {
+            const match = this.calculateMatch(userInput, item);
             
-            // Check against common phrases in description
-            const typeSimilarity = this.calculateSimilarity(text, item.type);
-            
-            const similarity = Math.max(descSimilarity, typeSimilarity);
-            
-            if (similarity > 0.1) {
-                results.push({
+            if (match.score > 0) {
+                allMatches.push({
                     item: item,
-                    score: similarity,
-                    type: 'semantic'
+                    score: match.score,
+                    keywords: match.matchedKeywords
                 });
+                
+                if (match.score > bestScore) {
+                    bestScore = match.score;
+                    bestMatch = item;
+                }
             }
         });
         
-        return results.sort((a, b) => b.score - a.score);
-    }
-    
-    combineResults(keywordResults, semanticResults, userInput) {
-        // Prioritize keyword matches
-        if (keywordResults.length > 0 && keywordResults[0].score >= 2) {
-            const bestMatch = keywordResults[0];
-            return {
-                bestMatch: bestMatch.item,
-                confidence: Math.min(0.9, bestMatch.score / 5),
-                alternatives: keywordResults.slice(1, 3).map(r => r.item),
-                method: 'keyword'
-            };
-        }
+        // Sort matches by score
+        allMatches.sort((a, b) => b.score - a.score);
         
-        // Check for specific patterns
+        // Special case handling
         if (userInput.includes("plastic") && userInput.includes("bag")) {
-            const plasticBag = this.knowledgeBase.find(item => item.id === "plastic_bag");
-            return {
-                bestMatch: plasticBag,
-                confidence: 0.95,
-                alternatives: [],
-                method: 'pattern'
-            };
+            bestMatch = wasteKnowledge.find(item => item.id === "plastic_bag");
+            bestScore = 10;
         }
         
-        // Use semantic if no strong keyword match
-        if (semanticResults.length > 0) {
-            const bestMatch = semanticResults[0];
-            return {
-                bestMatch: bestMatch.item,
-                confidence: bestMatch.score * 0.8,
-                alternatives: semanticResults.slice(1, 3).map(r => r.item),
-                method: 'semantic'
-            };
+        if (userInput.includes("phone") || userInput.includes("laptop")) {
+            bestMatch = wasteKnowledge.find(item => item.id === "ewaste");
+            bestScore = 8;
         }
         
-        // Fallback: find closest match
-        const allItems = [...keywordResults, ...semanticResults]
-            .sort((a, b) => b.score - a.score);
-            
-        if (allItems.length > 0) {
+        if (bestMatch) {
+            return this.createResponse(bestMatch, null, bestScore / 15, allMatches.slice(0, 3));
+        }
+        
+        return this.createResponse(null, "I'm not sure about this item. Try being more specific.", 0);
+    }
+    
+    createResponse(item, error, confidence, alternatives = []) {
+        if (error) {
             return {
-                bestMatch: allItems[0].item,
-                confidence: allItems[0].score * 0.5,
-                alternatives: allItems.slice(1, 3).map(r => r.item),
-                method: 'fallback'
+                success: false,
+                error: error,
+                confidence: 0
             };
         }
         
         return {
-            bestMatch: null,
-            confidence: 0,
-            alternatives: [],
-            method: 'none'
+            success: true,
+            item: item,
+            confidence: Math.min(confidence, 0.95).toFixed(2),
+            alternatives: alternatives.map(a => a.item),
+            explanation: this.generateExplanation(item, confidence)
         };
     }
     
-    generateExplanation(result, userInput) {
-        if (!result.bestMatch) {
-            return `I'm not sure where "${userInput}" should go. Try being more specific or ask about common items.`;
-        }
+    generateExplanation(item, confidence) {
+        const confidenceText = confidence > 0.7 ? "highly confident" : 
+                              confidence > 0.4 ? "moderately confident" : "somewhat uncertain";
         
-        const confidenceText = result.confidence > 0.7 ? "high confidence" : 
-                              result.confidence > 0.4 ? "moderate confidence" : "low confidence";
-        
-        return `Based on my knowledge: "${userInput}" appears to be ${result.bestMatch.type}.\n\n` +
-               `✅ **Disposal**: ${result.bestMatch.bin}\n` +
-               `📝 **Description**: ${result.bestMatch.description}\n` +
-               `💡 **Tips**: ${result.bestMatch.tips.join(". ")}\n` +
-               `🎯 **Confidence**: ${(result.confidence * 100).toFixed(0)}% (${confidenceText})`;
+        return `I am ${confidenceText} this is **${item.type}**.\n\n` +
+               `**📍 Where to dispose:** ${item.bin}\n` +
+               `**📋 Important rules:** ${item.rules.join(" • ")}\n` +
+               `**🌍 Why recycle:** ${item.why}\n` +
+               `**📦 Examples:** ${item.examples}`;
     }
     
-    // Enhanced chat response with RAG
-    async chatWithRAG(question) {
-        // Check if it's a classification question
-        const classificationPatterns = [
-            "where should i throw",
-            "how do i dispose",
-            "what bin for",
-            "recycle",
-            "dispose of",
-            "throw away"
-        ];
+    // Chat response with RAG
+    chatResponse(question) {
+        const lowerQuestion = question.toLowerCase();
         
-        const isClassificationQuestion = classificationPatterns.some(pattern => 
-            question.toLowerCase().includes(pattern)
-        );
+        // Check if it's asking about disposal
+        const disposalKeywords = ["where", "how to", "dispose", "throw", "recycle", "bin"];
+        const isDisposalQuestion = disposalKeywords.some(keyword => lowerQuestion.includes(keyword));
         
-        if (isClassificationQuestion) {
-            // Extract the waste item from question
-            let wasteItem = question;
-            classificationPatterns.forEach(pattern => {
-                if (question.toLowerCase().includes(pattern)) {
-                    wasteItem = question.toLowerCase().split(pattern)[1]?.trim() || wasteItem;
+        if (isDisposalQuestion) {
+            // Extract the item from question
+            let wasteItem = lowerQuestion;
+            disposalKeywords.forEach(keyword => {
+                if (wasteItem.includes(keyword)) {
+                    wasteItem = wasteItem.split(keyword)[1] || wasteItem;
                 }
             });
             
-            const result = await this.classifyWithRAG(wasteItem);
-            return result.explanation;
-        }
-        
-        // General waste knowledge questions
-        const generalResponses = {
-            "what can i recycle": "Common recyclables: plastic bottles (#1,2,5), paper, cardboard, glass jars, metal cans. Check local rules!",
-            "why recycle": "Recycling saves energy, reduces landfill waste, conserves resources, and helps fight climate change! 🌍",
-            "compost": "Composting turns organic waste into nutrient-rich soil. Great for gardens and reduces methane from landfills.",
-            "plastic bags": "⚠️ Most curbside recycling doesn't accept plastic bags. Take them to store drop-off bins.",
-            "e waste": "Electronics contain valuable materials AND toxic substances. Always recycle properly at certified facilities."
-        };
-        
-        for (const [key, response] of Object.entries(generalResponses)) {
-            if (question.toLowerCase().includes(key)) {
-                return response;
+            wasteItem = wasteItem.replace(/[?.,]/g, '').trim();
+            
+            if (wasteItem.length > 2) {
+                const result = this.classify(wasteItem);
+                if (result.success) {
+                    return result.explanation;
+                }
             }
         }
         
-        return "I'm here to help with waste disposal questions! Try asking about specific items like 'plastic bottle' or 'food waste'.";
+        // General questions
+        if (lowerQuestion.includes("what can i recycle")) {
+            return "You can recycle: plastic bottles/containers, paper/cardboard, glass jars, metal cans, and electronics at special facilities. ♻️";
+        }
+        
+        if (lowerQuestion.includes("why recycle")) {
+            return "Recycling saves energy, reduces landfill waste, conserves natural resources, and helps fight climate change! 🌍";
+        }
+        
+        if (lowerQuestion.includes("plastic bag")) {
+            return "⚠️ Plastic bags should NOT go in curbside recycling! Take them to grocery store drop-off bins. They clog machinery.";
+        }
+        
+        if (lowerQuestion.includes("hi") || lowerQuestion.includes("hello")) {
+            return "Hello! I'm your Eco Assistant with enhanced RAG AI. Ask me where to dispose any item! 🧠";
+        }
+        
+        return "I'm here to help with waste disposal questions. Try asking: 'Where should I throw plastic bottles?' or 'How to recycle old electronics?'";
     }
 }
 
-// Initialize RAG system
-const ragAI = new SimpleRAGSystem();
+// Initialize the RAG system
+const rag = new SimpleRAGClassifier();
 
-// ================== UPDATED WASTE ANALYSIS HANDLER ==================
-document.getElementById('analyzeBtn').addEventListener('click', async () => {
+// ================== UPDATE YOUR EXISTING ANALYZE FUNCTION ==================
+document.getElementById('analyzeBtn').addEventListener('click', function() {
     const input = document.getElementById('wasteInput').value.trim();
     const status = document.getElementById('aiStatus');
     const resultBox = document.getElementById('resultBox');
     
     if (!input) {
-        status.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please describe waste item';
+        status.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please enter waste item';
         return;
     }
     
     status.innerHTML = '<i class="fas fa-brain"></i> RAG AI analyzing...';
     
-    try {
-        const result = await ragAI.classifyWithRAG(input);
+    // Simple delay to show processing
+    setTimeout(() => {
+        const result = rag.classify(input);
         
-        // Reset highlights
+        // Reset bin highlights
         document.querySelectorAll('.bin-card').forEach(card => {
             card.style.borderColor = 'var(--sdg-soft)';
             card.style.boxShadow = 'none';
+            card.style.transform = 'none';
         });
         
-        if (!result.classification) {
+        if (!result.success) {
             resultBox.innerHTML = `
-                <div class="ai-result">
-                    <h3>🤔 Uncertain Classification</h3>
-                    <p>I'm not sure about "<strong>${input}</strong>"</p>
-                    <p class="tip">Try: "plastic bottle", "food waste", "old phone", "shopping bag"</p>
-                    <p>Or ask the chat bot for more specific guidance!</p>
+                <div class="simple-rag-result">
+                    <h3><i class="fas fa-question-circle"></i> Need More Info</h3>
+                    <p>${result.error}</p>
+                    <div class="suggestions">
+                        <p><strong>Try examples:</strong></p>
+                        <ul>
+                            <li>Plastic water bottle</li>
+                            <li>Food waste / banana peel</li>
+                            <li>Old phone or battery</li>
+                            <li>Shopping bags</li>
+                        </ul>
+                    </div>
                 </div>
             `;
-            status.innerHTML = '<i class="fas fa-question-circle"></i> RAG AI uncertain';
+            status.innerHTML = '<i class="fas fa-info-circle"></i> Try specific description';
             return;
         }
         
-        // Highlight matching bin
-        const matchedBin = document.querySelector(`[data-id="${result.classification.id}"]`);
+        // Highlight the matching bin
+        const matchedBin = document.querySelector(`[data-id="${result.item.id}"]`);
         if (matchedBin) {
-            matchedBin.style.borderColor = 'var(--sdg)';
-            matchedBin.style.boxShadow = '0 0 20px rgba(200, 154, 45, 0.5)';
-            matchedBin.style.transform = 'translateY(-5px)';
+            matchedBin.style.borderColor = '#4CAF50';
+            matchedBin.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.3)';
+            matchedBin.style.transform = 'scale(1.05)';
         }
         
-        // Display enhanced result
+        // Display RAG result
+        const confidencePercent = (result.confidence * 100).toFixed(0);
         const confidenceColor = result.confidence > 0.7 ? '#4CAF50' : 
                                result.confidence > 0.4 ? '#FF9800' : '#F44336';
         
         resultBox.innerHTML = `
-            <div class="ai-result">
-                <div class="ai-header">
-                    <i class="fas fa-robot"></i>
-                    <h3>RAG AI Result</h3>
-                    <span class="confidence-badge" style="background: ${confidenceColor}">
-                        ${(result.confidence * 100).toFixed(0)}% confident
+            <div class="simple-rag-result">
+                <div class="rag-header">
+                    <h3><i class="fas fa-robot"></i> RAG AI Result</h3>
+                    <span class="confidence" style="background: ${confidenceColor}">
+                        ${confidencePercent}% confident
                     </span>
                 </div>
                 
-                <div class="result-main">
-                    <h4>${result.classification.type}</h4>
-                    <p><strong>🏷️ Category:</strong> ${result.classification.type}</p>
-                    <p><strong>🗑️ Bin:</strong> ${result.classification.bin}</p>
-                    <p><strong>📋 Description:</strong> ${result.classification.description}</p>
+                <div class="rag-content">
+                    <h4>${result.item.type}</h4>
                     
-                    <div class="tips-section">
-                        <h5><i class="fas fa-lightbulb"></i> Tips:</h5>
+                    <div class="rag-section">
+                        <h5><i class="fas fa-trash-alt"></i> Disposal</h5>
+                        <p class="bin-highlight">${result.item.bin}</p>
+                    </div>
+                    
+                    <div class="rag-section">
+                        <h5><i class="fas fa-clipboard-list"></i> Rules</h5>
                         <ul>
-                            ${result.classification.tips.map(tip => `<li>${tip}</li>`).join('')}
+                            ${result.item.rules.map(rule => `<li>${rule}</li>`).join('')}
                         </ul>
                     </div>
                     
-                    ${result.classification.id === 'plastic_bag' ? 
-                        '<div class="warning"><i class="fas fa-exclamation-triangle"></i> Not accepted in curbside recycling!</div>' : ''}
-                    
-                    <div class="ai-meta">
-                        <small><i class="fas fa-cogs"></i> Powered by RAG AI • ${result.method} matching</small>
+                    <div class="rag-section">
+                        <h5><i class="fas fa-leaf"></i> Environmental Impact</h5>
+                        <p>${result.item.why}</p>
                     </div>
+                    
+                    <div class="rag-section">
+                        <h5><i class="fas fa-box"></i> Common Examples</h5>
+                        <p>${result.item.examples}</p>
+                    </div>
+                    
+                    ${result.item.id === 'plastic_bag' ? `
+                        <div class="warning-rag">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> Not accepted in curbside recycling bins
+                        </div>
+                    ` : ''}
+                    
+                    ${result.alternatives.length > 0 ? `
+                        <div class="alternatives">
+                            <h5><i class="fas fa-exchange-alt"></i> Also could be:</h5>
+                            <p>${result.alternatives.map(a => a.type).join(', ')}</p>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="rag-footer">
+                    <small><i class="fas fa-microchip"></i> Powered by RAG AI • Retrieval-Augmented Generation</small>
                 </div>
             </div>
         `;
         
-        status.innerHTML = `<i class="fas fa-check-circle"></i> RAG AI complete (${result.method})`;
+        status.innerHTML = `<i class="fas fa-check-circle"></i> RAG analysis complete`;
         
-    } catch (error) {
-        console.error("RAG AI error:", error);
-        resultBox.innerHTML = `
-            <div class="ai-result error">
-                <h3>⚠️ AI System Error</h3>
-                <p>Please try again or use simple description.</p>
-            </div>
-        `;
-        status.innerHTML = '<i class="fas fa-times-circle"></i> System error';
-    }
+    }, 800);
 });
 
-// ================== UPDATED CHAT BOT WITH RAG ==================
-async function enhancedChatResponse(userMessage) {
-    // Use RAG for waste-related questions
-    if (userMessage.length > 3 && 
-        (userMessage.includes('?') || 
-         userMessage.includes('where') ||
-         userMessage.includes('how') ||
-         userMessage.includes('what'))) {
-        
-        return await ragAI.chatWithRAG(userMessage);
-    }
-    
-    // Keep existing responses for greetings
-    const existingResponses = {
-        "hi": "Hello! I'm your enhanced Eco Assistant with RAG AI. Ask me detailed waste questions! 🧠",
-        "hello": "Hi there! I now use Retrieval-Augmented Generation for better answers. Try me!",
-        "thanks": "You're welcome! Happy to help with smarter AI! 🌱",
-        "help": "I can now provide more accurate waste info using RAG technology. Ask about specific items!"
-    };
-    
-    const lowerMessage = userMessage.toLowerCase();
-    for (const [key, response] of Object.entries(existingResponses)) {
-        if (lowerMessage.includes(key)) {
-            return response;
-        }
-    }
-    
-    return "I'm your enhanced Eco Assistant with RAG capabilities. Ask me detailed questions about waste disposal!";
-}
-
-// Update the sendMessage function
-async function sendMessage() {
-    const message = chatInput.value.trim();
+// ================== UPDATE CHAT BOT ==================
+// Replace your existing sendMessage function
+const originalSendMessage = window.sendMessage;
+window.sendMessage = function() {
+    const message = document.getElementById('chatInput').value.trim();
     if (!message) return;
     
-    addMessage(message, true);
-    chatInput.value = '';
+    // Add user message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user';
+    messageDiv.innerHTML = `<p>${message}</p>`;
+    document.getElementById('chatMessages').appendChild(messageDiv);
     
-    setTimeout(async () => {
-        const response = await enhancedChatResponse(message);
-        addMessage(response, false);
+    // Clear input
+    document.getElementById('chatInput').value = '';
+    
+    // Scroll to bottom
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Get RAG response after delay
+    setTimeout(() => {
+        const response = rag.chatResponse(message);
+        
+        const botMessage = document.createElement('div');
+        botMessage.className = 'message bot rag-enhanced';
+        botMessage.innerHTML = `<p>${response.replace(/\n/g, '<br>')}</p>`;
+        document.getElementById('chatMessages').appendChild(botMessage);
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 600);
-}
+};
 
-// Update initial chat message
-setTimeout(() => {
-    addMessage("Hi! I'm your enhanced Eco Assistant with RAG AI. Ask detailed questions like 'Where should I dispose old batteries?' or 'How to recycle plastic bags?' 🧠", false);
-}, 800);
+// Update chat toggle to use new function
+document.getElementById('sendBtn').onclick = window.sendMessage;
+document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') window.sendMessage();
+});
 
-// ================== ADDITIONAL CSS FOR RAG UI ==================
-const ragStyles = document.createElement('style');
-ragStyles.textContent = `
-    .ai-result {
-        background: linear-gradient(135deg, #ffffff 0%, #FFF9E6 100%);
+// ================== ADD SIMPLE RAG CSS ==================
+const style = document.createElement('style');
+style.textContent = `
+    .simple-rag-result {
+        background: white;
         border-radius: 1rem;
         padding: 1.5rem;
-        border-left: 5px solid var(--sdg);
+        margin: 1rem 0;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-left: 4px solid #4CAF50;
     }
     
-    .ai-header {
+    .rag-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 1rem;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
-        border-bottom: 2px solid var(--sdg-soft);
+        border-bottom: 2px solid #f0f0f0;
     }
     
-    .ai-header h3 {
-        color: var(--sdg-dark);
+    .rag-header h3 {
+        color: #2E7D32;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
-    .confidence-badge {
+    .confidence {
         padding: 0.25rem 0.75rem;
         border-radius: 1rem;
         color: white;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-left: auto;
+        font-size: 0.85rem;
+        font-weight: bold;
     }
     
-    .result-main h4 {
-        color: var(--sdg-dark);
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
+    .rag-content h4 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.4rem;
     }
     
-    .tips-section {
-        background: var(--sdg-light);
+    .rag-section {
+        margin-bottom: 1.5rem;
         padding: 1rem;
+        background: #f9f9f9;
         border-radius: 0.5rem;
-        margin: 1rem 0;
     }
     
-    .tips-section h5 {
-        color: var(--sdg-dark);
+    .rag-section h5 {
+        color: #2E7D32;
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    .tips-section ul {
+    .bin-highlight {
+        background: #E8F5E9;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: bold;
+        color: #2E7D32;
+        border-left: 3px solid #4CAF50;
+    }
+    
+    .rag-section ul {
         padding-left: 1.5rem;
         margin: 0;
     }
     
-    .tips-section li {
-        margin-bottom: 0.25rem;
+    .rag-section li {
+        margin-bottom: 0.5rem;
     }
     
-    .warning {
-        background: #FFEBEE;
-        color: #C62828;
-        padding: 0.75rem;
+    .warning-rag {
+        background: #FFF3E0;
+        padding: 1rem;
         border-radius: 0.5rem;
+        color: #EF6C00;
         margin: 1rem 0;
-        border-left: 4px solid #C62828;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        border-left: 3px solid #FF9800;
     }
     
-    .ai-meta {
-        margin-top: 1rem;
-        padding-top: 0.75rem;
-        border-top: 1px dashed var(--sdg-soft);
+    .alternatives {
+        background: #E3F2FD;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .alternatives h5 {
+        color: #1565C0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .rag-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #ddd;
         color: #666;
         font-size: 0.85rem;
+        text-align: center;
     }
     
-    .ai-result.error {
-        background: #FFEBEE;
-        border-left-color: #F44336;
+    .suggestions {
+        background: #F5F5F5;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
     }
     
-    /* RAG indicator in chat */
-    .message.bot.rag {
-        background: linear-gradient(135deg, var(--sdg-light) 0%, #E8F5E9 100%);
+    .suggestions ul {
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .suggestions li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .message.bot.rag-enhanced {
+        background: linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%);
         border-left: 4px solid #4CAF50;
     }
-`;
-document.head.appendChild(ragStyles);
-
-// Update addMessage function to show RAG indicator
-const originalAddMessage = addMessage;
-addMessage = function(text, isUser = false) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
     
-    // Add RAG indicator for bot responses
-    if (!isUser && (text.includes("RAG") || text.includes("Based on my knowledge"))) {
-        messageDiv.classList.add('rag');
+    #aiStatus i.fa-brain {
+        color: #4CAF50;
     }
-    
-    messageDiv.innerHTML = `<p>${text}</p>`;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-};
+`;
+document.head.appendChild(style);
+
+// Test the RAG system
+console.log("🚀 Simple RAG System Ready!");
+console.log("Test commands:");
+console.log("- rag.classify('plastic bottle')");
+console.log("- rag.chatResponse('where to throw plastic bags?')");
+
+// Update initial chat message
+setTimeout(() => {
+    if (document.getElementById('chatMessages')) {
+        const chatDiv = document.getElementById('chatMessages');
+        const welcomeMsg = document.createElement('div');
+        welcomeMsg.className = 'message bot rag-enhanced';
+        welcomeMsg.innerHTML = '<p>Hello! I\'m your <strong>Enhanced Eco Assistant with RAG AI</strong>! 🧠<br>Ask me: "Where should I throw plastic bags?" or "How to recycle old phones?"</p>';
+        chatDiv.appendChild(welcomeMsg);
+    }
+}, 1000);
+
+// Make rag available globally for testing
+window.rag = rag;
 
 console.log("🚀 RAG AI System Loaded!");
+
